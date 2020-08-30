@@ -23,6 +23,10 @@ metadata {
 		capability "Refresh"
 		capability "Health Check"
         capability "Sensor"
+		capability "Polling"
+
+
+        
 
 		command "reset"
         command "resetMeter"
@@ -36,10 +40,34 @@ metadata {
 		fingerprint deviceId: "0X3101", inClusters:"0x5E,0x86,0x72,0x32,0x56,0x60,0x8E,0x70,0x59,0x85,0x7A,0x73,0x5A"
 	}
 
+//samer
+simulator {
+
+		for (int i = 0; i <= 10000; i += 1000) {
+		status "power  ${i} W": 
+			new physicalgraph.zwave.Zwave().meterV3.meterReport(scaledMeterValue: i, precision: 3, meterType: 1, scale: 2, size: 4).incomingMessage()
+		}
+		for (int i = 0; i <= 100; i += 10) {
+			status "energy  ${i} kWh":
+			new physicalgraph.zwave.Zwave().meterV3.meterReport(scaledMeterValue: i, precision: 3, meterType: 1, scale: 0, size: 4).incomingMessage()
+		}
+	}
+//samer  
+
+
+
+
+
+
+
+
+
+
+
 	tiles (scale: 2) {
-		multiAttributeTile(name:"multiTile", type: "generic", width: 3, height: 4){
+		multiAttributeTile(name:"multiTile", width: 6, height: 4){
 			tileAttribute ("device.power", key: "PRIMARY_CONTROL") {
-				attributeState "power", label: '${currentValue} W', icon: null, backgroundColors:[
+				attributeState "power",  label: '${currentValue}  W',unit: "W", icon: "st.Home.home2", backgroundColors:[
 					[value: 0, color: "#44b621"],
 					[value: 2000, color: "#f1d801"],
 					[value: 4000, color: "#d04e00"],
@@ -58,24 +86,49 @@ metadata {
 				[value: 6000, color: "#bc2323"]
 			]
 		}
-		valueTile("energy", "device.energy", decoration: "flat", width: 2, height: 2) {
-			state "energy", label:'${currentValue}\n kWh ', unit: "kWh"
+		valueTile("energy", "device.energy",  width: 2, height: 2) {
+			state "energy", label:'${currentValue}\n kWh ', unit: "kWh", backgroundColor: "#1e9cbb", defaultState: true
 		}
 		valueTile("voltage", "device.voltage", decoration: "flat", width: 2, height: 2) {
-			state "voltage", label:'${currentValue}\n V ', unit: "V"
+            state "voltage", label:'220\n Volt ', unit: "V",   foregroundColor: "#ffffff"
 		}
 		valueTile("current", "device.current", decoration: "flat", width: 2, height: 2) {
-			state "current", label:'${currentValue}\n A ', unit: "A"
+			state "current", label:'${currentValue}\n A ', unit: "A", backgroundColor: "#f10d19", defaultState: true
 		}
 		standardTile("reset", "device.reset", decoration: "flat", width: 2, height: 2) {
-			state "default", label:'Reset kWh', action:"reset", icon: "st.Kids.kids4"
+			state "default", label:'Reset kWh', action:"reset", icon: "st.Kids.kids4" 
 		}
 		standardTile("refresh", "device.refresh", decoration: "flat", width: 2, height: 2) {
 			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
-		
+       valueTile("cost", "device.cost", decoration: "flat", width: 2, height: 2) {
+			state "default", label:'\${currentValue}\n JD', unit: "JD", backgroundColor: "#e86d13", defaultState: true
+
+            }
+      
+      
+        valueTile("lastresetlabel", "device.lastreset", decoration: "flat", width: 3, height: 1) {
+			state "default", label:'Last Reset Timestamp'
+		}
+		valueTile("lastresettime", "device.lastreset", width: 3, height: 1) {
+			state "default", label:'${currentValue}', backgroundColor: "#f10d19"
+            }
+            
+            valueTile("tariffRate", "device.tariffRate", width: 2, height: 2, decoration: "flat", wordWrap: true) {
+			state "default", label: 'CAT ${currentValue} ', unit: "A",defaultState: true, backgroundColors :[
+				[value: 1, color: "#44b621"],
+				[value: 2, color: "#f1d801"],
+				[value: 3, color: "#d04e00"],
+				[value: 4, color: "#bc2323"],
+                [value: 5, color: "#bc2323"],
+                [value: 6, color: "#bc2323"],
+                [value: 7, color: "#bc2323"]
+			] 
+            }
+            
+            
 		main "power"
-		details("multiTile","energy","voltage","current","reset","refresh")
+		details("multiTile","energy","tariffRate","cost","reset","voltage","refresh","lastresetlabel","lastresettime")
 	}
 		
 	preferences {
@@ -105,8 +158,118 @@ metadata {
 		
 		input ( name: "logging", title: "Logging", type: "boolean", required: false )
 	}
-}
+}       
 
+//def updateUsageData(todayUsage, todayCost, monthUsage, monthCost, monthEst, monthBudget) {
+    	//sendEvent(name: "devVer", value: "${device.label}\nDev. Type: V${devTypeVer()} (${versionDate()})", display: false, displayed: false)
+
+//def updateStateData(costsa) {
+    //sendEvent(name: "costsa", value: "${device.voltage}", display: false, displayed: false)
+       // sendEvent(name: "tariffRate", value: "10", display: false, displayed: false)
+//}
+     //sendEvent(name: "todayUsage", value: "${state.currencySym}${monthCost} (${todayUsage} kWH)", display: false, displayed: false)
+  
+  
+           
+           
+           //samerinput
+           preferences {
+		
+		input "kWhCost1", "string",
+			title: "Cost in \$/kWh1",
+			description: "Your Electric Bill Cost Per kWh",
+			defaultValue: "0.33" as String,
+			required: false,
+			displayDuringSetup: true
+            
+            input "kWhCost2", "string",
+			title: "Cost in \$/kWh2",
+			description: "Your Electric Bill Cost Per kWh",
+			defaultValue: "0.33" as String,
+			required: false,
+			displayDuringSetup: true
+            
+            input "kWhCost3", "string",
+			title: "Cost in \$/kWh3",
+			description: "Your Electric Bill Cost Per kWh",
+			defaultValue: "0.33" as String,
+			required: false,
+			displayDuringSetup: true
+            
+            input "kWhCost4", "string",
+			title: "Cost in \$/kWh4",
+			description: "Your Electric Bill Cost Per kWh",
+			defaultValue: "0.33" as String,
+			required: false,
+			displayDuringSetup: true
+            
+            input "kWhCost5", "string",
+			title: "Cost in \$/kWh5",
+			description: "Your Electric Bill Cost Per kWh",
+			defaultValue: "0.33" as String,
+			required: false,
+			displayDuringSetup: true
+            
+            input "kWhCost6", "string",
+			title: "Cost in \$/kWh6",
+			description: "Your Electric Bill Cost Per kWh",
+			defaultValue: "0.33" as String,
+			required: false,
+			displayDuringSetup: true
+            
+            input "kWhCost7", "string",
+			title: "Cost in \$/kWh7",
+			description: "Your Electric Bill Cost Per kWh",
+			defaultValue: "0.33" as String,
+			required: false,
+			displayDuringSetup: true
+            
+            input "fuel", "string",
+			title: "Fuel Cost in /kWh",
+			description: "Your Electric Bill Cost Per kWh",
+			defaultValue: "0.33" as String,
+			required: false,
+			displayDuringSetup: true
+            
+            input "StartCost", "string",
+			title: "Start Cost ",
+			description: "Your Electric Bill Cost Per kWh",
+			defaultValue: "0.33" as String,
+			required: false,
+			displayDuringSetup: true
+	/*	input "monitorInterval1", "integer",
+			title: "Volts & kWh Report",
+			description: "Interval (secs) for Volts & kWh Report",
+			defaultValue: 60,
+			range: "1..4294967295?",
+			required: false,
+			displayDuringSetup: true
+		input "monitorInterval2", "integer",
+			title: "Amps Report",
+			description: "Interval (secs) for Amps Report",
+			defaultValue: 30,
+			range: "1..4294967295?",
+			required: false,
+			displayDuringSetup: true
+		input "monitorInterval3", "integer",
+			title: "Watts Report",
+			description: "Interval (secs) for Watts Report",
+			defaultValue: 6,
+			range: "1..4294967295?",
+			required: false,
+			displayDuringSetup: true
+            */
+	}
+
+           
+           //samer
+           
+          
+           
+           
+           
+           
+            
 def getPrefsFor(parameter) {
 	input (
 		title: "${parameter.num}. ${parameter.title}",
@@ -137,6 +300,12 @@ def refresh() {
 }
 
 def reset() {
+
+def dateString = new Date().format("M/d/YY", location.timeZone)
+	def timeString = new Date().format("h:mm a", location.timeZone)    
+	state.lastreset = dateString+" @ "+timeString
+	sendEvent(name: "lastreset", value: state.lastreset)
+    
 	logging("${device.displayName} - executing reset()","info")
 	if ( state.lastReset && (now() - state.lastReset) < 2000 ) {
 		return resetMeter()
@@ -295,7 +464,130 @@ def zwaveEvent(physicalgraph.zwave.commands.applicationstatusv1.ApplicationRejec
 }
 
 //event handlers
+//def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd, ep=null) {
+
+
+
+
+	//event handlers
 def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd, ep=null) {
+//samer
+def meterTypes = ["Unknown", "Electric", "Gas", "Water"]
+    def electricNames = ["energy", "energy", "power", "count",  "voltage", "current", "powerFactor",  "unknown"]
+    def electricUnits = ["kWh",    "kVAh",   "W",     "pulses", "V",       "A",       "Power Factor", ""]
+    
+    
+    //samervoltage
+
+
+ //sendEvent(name: "voltagesa", value: device.voltage + 20)
+ 
+ 
+ 
+    //NOTE ScaledPreviousMeterValue does not always contain a value
+    def previousValue = cmd.scaledPreviousMeterValue ?: 0
+//samercalc
+    //Here is where all HEM polled values are defined. Scale(0-7) is in reference to the Aeon Labs HEM Gen5 data for kWh, kVAh, W, V, A, and M.S.T. respectively.
+    //If scale 7 (M.S.T.) is polled, you would receive Scale2(0-1) which is kVar, and kVarh respectively. We are ignoring the Scale2 ranges in this device handler.
+    def map = [ name: electricNames[cmd.scale], unit: electricUnits[cmd.scale], displayed: state.display]
+     switch(cmd.scale) {
+        case 0: //kWh
+        //160
+        if (cmd.scaledMeterValue <= 160) {
+						previousValue = device.currentValue("energy") ?: cmd.scaledPreviousMeterValue ?: 0
+						BigDecimal costDecimal = (cmd.scaledMeterValue * (kWhCost1 as BigDecimal)) + (StartCost as BigDecimal)
+						def costDisplay = String.format("%5.2f",costDecimal)
+						sendEvent(name: "cost", value: costDisplay, unit: "", descriptionText: "Display Cost: \$${costDisp}")
+						map.value = cmd.scaledMeterValue
+                        sendEvent(name: "tariffRate", value: 1)
+                        }
+                        //160
+                       else if (cmd.scaledMeterValue > 160 && cmd.scaledMeterValue <= 300) {
+						previousValue = device.currentValue("energy") ?: cmd.scaledPreviousMeterValue ?: 0
+						BigDecimal costDecimal = ((cmd.scaledMeterValue - 160) * (kWhCost2 as BigDecimal)) + (StartCost as BigDecimal) + (160 * (kWhCost1 as BigDecimal))
+						def costDisplay = String.format("%5.2f",costDecimal)
+						sendEvent(name: "cost", value: costDisplay, unit: "", descriptionText: "Display Cost: \$${costDisp}")
+						map.value = cmd.scaledMeterValue
+                        sendEvent(name: "tariffRate", value: 2)
+
+                        }
+                        
+                         else if (cmd.scaledMeterValue > 300 && cmd.scaledMeterValue <= 500) {
+						previousValue = device.currentValue("energy") ?: cmd.scaledPreviousMeterValue ?: 0
+						BigDecimal costDecimal = ((cmd.scaledMeterValue - 300) * (kWhCost3 as BigDecimal)) + (StartCost as BigDecimal) + (160 * (kWhCost1 as BigDecimal))+ (140 * (kWhCost2 as BigDecimal))+((cmd.scaledMeterValue * (fuel as BigDecimal)))
+						def costDisplay = String.format("%5.2f",costDecimal)
+						sendEvent(name: "cost", value: costDisplay, unit: "", descriptionText: "Display Cost: \$${costDisp}")
+						map.value = cmd.scaledMeterValue
+                        sendEvent(name: "tariffRate", value:3)
+                        }
+                        
+                        
+                         else if (cmd.scaledMeterValue > 500 && cmd.scaledMeterValue <= 600) {
+						previousValue = device.currentValue("energy") ?: cmd.scaledPreviousMeterValue ?: 0
+						BigDecimal costDecimal = ((cmd.scaledMeterValue - 500) * (kWhCost4 as BigDecimal)) + (StartCost as BigDecimal) + (160 * (kWhCost1 as BigDecimal))+ (140 * (kWhCost2 as BigDecimal))+ (200 * (kWhCost3 as BigDecimal))+((cmd.scaledMeterValue * (fuel as BigDecimal)))
+						def costDisplay = String.format("%5.2f",costDecimal)
+						sendEvent(name: "cost", value: costDisplay, unit: "", descriptionText: "Display Cost: \$${costDisp}")
+						map.value = cmd.scaledMeterValue
+                        sendEvent(name: "tariffRate", value: 4)
+                        }
+                        
+                         else if (cmd.scaledMeterValue > 600 && cmd.scaledMeterValue <= 750) {
+						previousValue = device.currentValue("energy") ?: cmd.scaledPreviousMeterValue ?: 0
+						BigDecimal costDecimal = ((cmd.scaledMeterValue - 600) * (kWhCost5 as BigDecimal)) + (StartCost as BigDecimal) + (160 * (kWhCost1 as BigDecimal))+ (140 * (kWhCost2 as BigDecimal))+ (200 * (kWhCost3 as BigDecimal))+ (100 * (kWhCost4 as BigDecimal))+((cmd.scaledMeterValue * (fuel as BigDecimal)))
+						def costDisplay = String.format("%5.2f",costDecimal)
+						sendEvent(name: "cost", value: costDisplay, unit: "", descriptionText: "Display Cost: \$${costDisp}")
+						map.value = cmd.scaledMeterValue
+                        sendEvent(name: "tariffRate", value: 5)
+                        }
+                        
+                        
+                         else if (cmd.scaledMeterValue > 750 && cmd.scaledMeterValue <= 1000) {
+						previousValue = device.currentValue("energy") ?: cmd.scaledPreviousMeterValue ?: 0
+						BigDecimal costDecimal = ((cmd.scaledMeterValue - 750) * (kWhCost6 as BigDecimal)) + (StartCost as BigDecimal) + (160 * (kWhCost1 as BigDecimal))+ (140 * (kWhCost2 as BigDecimal))+ (200 * (kWhCost3 as BigDecimal))+ (100 * (kWhCost4 as BigDecimal))+ (150 * (kWhCost5 as BigDecimal))+((cmd.scaledMeterValue * (fuel as BigDecimal)))
+						def costDisplay = String.format("%5.2f",costDecimal)
+						sendEvent(name: "cost", value: costDisplay, unit: "", descriptionText: "Display Cost: \$${costDisp}")
+						map.value = cmd.scaledMeterValue
+                        sendEvent(name: "tariffRate", value: 6)
+                        }
+                        
+                         else if (cmd.scaledMeterValue > 1000 ) {
+						previousValue = device.currentValue("energy") ?: cmd.scaledPreviousMeterValue ?: 0
+						BigDecimal costDecimal = ((cmd.scaledMeterValue - 1000) * (kWhCost7 as BigDecimal)) + (StartCost as BigDecimal) + (160 * (kWhCost1 as BigDecimal))+ (140 * (kWhCost2 as BigDecimal))+ (200 * (kWhCost3 as BigDecimal))+ (100 * (kWhCost4 as BigDecimal))+ (150 * (kWhCost5 as BigDecimal))+ (120 * (kWhCost6 as BigDecimal))+((cmd.scaledMeterValue * (fuel as BigDecimal)))
+						def costDisplay = String.format("%5.2f",costDecimal)
+						sendEvent(name: "cost", value: costDisplay, unit: "", descriptionText: "Display Cost: \$${costDisp}")
+						map.value = cmd.scaledMeterValue
+                        sendEvent(name: "tariffRate", value: 7)
+                        }
+            break;
+      /* case 1: //kVAh (not used in the U.S.)
+            map.value = cmd.scaledMeterValue
+            break;
+        case 2: //Watts
+            previousValue = device.currentValue("power") ?: cmd.scaledPreviousMeterValue ?: 0
+            map.value = Math.round(cmd.scaledMeterValue)
+            break;
+        case 3: //pulses
+						map.value = Math.round(cmd.scaledMeterValue)
+            break;
+        case 4: //Volts
+            previousValue = device.currentValue("voltage") ?: cmd.scaledPreviousMeterValue ?: 0
+            map.value = cmd.scaledMeterValue
+            break;
+        case 5: //Amps
+            previousValue = device.currentValue("current") ?: cmd.scaledPreviousMeterValue ?: 0
+            map.value = cmd.scaledMeterValue
+            break;
+        case 6: //Power Factor
+        case 7: //Scale2 values (not currently implimented or needed)
+            map.value = cmd.scaledMeterValue
+            break;
+        default:
+            break;
+           
+    } 
+createEvent(map)*/
+ }
+//samer
 	String unit
 	String type
 	switch (cmd.scale+((cmd.scale2) ? 1:0)) {
@@ -319,6 +611,15 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd, ep=null) {
 	}
 }
 
+ //samer
+           
+         //  def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
+    
+
+
+           
+           //samer
+           
 /*
 ####################
 ## Z-Wave Toolkit ##
@@ -467,30 +768,30 @@ private parameterMap() {[
 		descr: "Threshold change in wattage to induce a automatic report (Clamp 1)\n0-60000 W"], 
 	[key: "thresholdClamp2", num: 6, size: 2, type: "number", def: 50, min: 0, max: 60000, title: "Clamp 2 threshold", 
 		descr: "Threshold change in wattage to induce a automatic report (Clamp 2)\n0-60000 W"], 
-	[key: "thresholdClamp3", num: 7, size: 2, type: "number", def: 50, min: 0, max: 60000, title: "Clamp 3 threshold", 
-		descr: "Threshold change in wattage to induce a automatic report (Clamp 3)\n0-60000W"], 
+	//[key: "thresholdClamp3", num: 7, size: 2, type: "number", def: 50, min: 0, max: 60000, title: "Clamp 3 threshold", 
+	//	descr: "Threshold change in wattage to induce a automatic report (Clamp 3)\n0-60000W"], 
 	[key: "percentageHEM", num: 8, size: 1, type: "number", def: 10, min: 0, max: 100, title: "HEM percentage", 
 		descr: "Percentage change in wattage to induce a automatic report (Whole HEM)\n0-100%"], 
 	[key: "percentageClamp1", num: 9, size: 1, type: "number", def: 10, min: 0, max: 100, title: "Clamp 1 percentage", 
 		descr: "Percentage change in wattage to induce a automatic report (Clamp 1)\n0-100%"], 
 	[key: "percentageClamp2", num: 10, size: 1, type: "number", def: 10, min: 0, max: 100, title: "Clamp 2 percentage", 
 		descr: "Percentage change in wattage to induce a automatic report (Clamp 2)\n0-100%"], 
-	[key: "percentageClamp3", num: 11, size: 1, type: "number", def: 10, min: 0, max: 100, title: "Clamp 3 percentage", 
-		descr: "Percentage change in wattage to induce a automatic report (Clamp 3)\n0-100%"],
+	//[key: "percentageClamp3", num: 11, size: 1, type: "number", def: 10, min: 0, max: 100, title: "Clamp 3 percentage", 
+	//	descr: "Percentage change in wattage to induce a automatic report (Clamp 3)\n0-100%"],
 	[key: "crcReporting", num: 13, size: 1, type: "enum", options: [
 		0: "0 - disable,", 
 		1: "1 - enable"],
 		def: "0", title: "CRC-16 reporting", 
 		descr: "Enable /disable reporting using CRC-16 Encapsulation Command"],
 	[key: "group1", num: 101, size: 4, type: "number", def: 2, min: 0, max: 4210702, title: null, descr: null],
-	[key: "group2", num: 102, size: 4, type: "number", def: 1, min: 0, max: 4210702, title: null, descr: null],
-	[key: "group3", num: 103, size: 4, type: "number", def: 0, min: 0, max: 4210702, title: null, descr: null],
+	//[key: "group2", num: 102, size: 4, type: "number", def: 1, min: 0, max: 4210702, title: null, descr: null],
+//	[key: "group3", num: 103, size: 4, type: "number", def: 0, min: 0, max: 4210702, title: null, descr: null],
 	[key: "timeGroup1", num: 111, size: 4, type: "number", def: 5, min: 0, max: 268435456, title: "Group 1 time interval", 
 		descr: "The time interval for Report group 1\n0-268435456s"],
-	[key: "timeGroup2", num: 112, size: 4, type: "number", def: 120, min: 0, max: 268435456, title: "Group 2 time interval", 
-		descr: "The time interval for Report group 2\n0-268435456s"],
-	[key: "timeGroup3", num: 113, size: 4, type: "number", def: 120, min: 0, max: 268435456, title: "Group 3 time interval", 
-		descr: "The time interval for Report group 3\n0-268435456s"]
+	//[key: "timeGroup2", num: 112, size: 4, type: "number", def: 120, min: 0, max: 268435456, title: "Group 2 time interval", 
+	//	descr: "The time interval for Report group 2\n0-268435456s"],
+	//[key: "timeGroup3", num: 113, size: 4, type: "number", def: 120, min: 0, max: 268435456, title: "Group 3 time interval", 
+	//	descr: "The time interval for Report group 3\n0-268435456s"]
 ]}
 
 private optionMap() {[
@@ -502,16 +803,16 @@ private optionMap() {[
 	//[key: "hemkVar", name: "Report kVar of whole HEM", value: 32, def:null], //Doesn't work
 	[key: "clamp1W", name: "Report Watts of Clamp 1.", value: 256, def:null],
 	[key: "clamp2W", name: "Report Watts of Clamp 2.", value: 512, def:null],
-	[key: "clamp3W", name: "Report Watts of Clamp 3.", value: 1024, def:null],
+	//[key: "clamp3W", name: "Report Watts of Clamp 3.", value: 1024, def:null],
 	[key: "clamp1kWh", name: "Report kWh of Clamp 1.", value: 2048, def:null],
 	[key: "clamp2kWh", name: "Report kWh of Clamp 2.", value: 4096, def:null],
-	[key: "clamp3kWh", name: "Report kWh of Clamp 3.", value: 8192, def:null],
-	[key: "clamp1V", name: "Report Voltage of Clamp 1.", value: 65536, def:null],
-	[key: "clamp2V", name: "Report Voltage of Clamp 2.", value: 131072, def:null],
-	[key: "clamp3V", name: "Report Voltage of Clamp 3.", value: 262144, def:null],
-	[key: "clamp1A", name: "Report Current (Amperes) of Clamp 1.", value: 524288, def:null],
-	[key: "clamp2A", name: "Report Current (Amperes) of Clamp 2.", value: 1048576, def:null],
-	[key: "clamp3A", name: "Report Current (Amperes) of Clamp 3.", value: 2097152, def:null],
+	//[key: "clamp3kWh", name: "Report kWh of Clamp 3.", value: 8192, def:null],
+	//[key: "clamp1V", name: "Report Voltage of Clamp 1.", value: 65536, def:null],
+	//[key: "clamp2V", name: "Report Voltage of Clamp 2.", value: 131072, def:null],
+	//[key: "clamp3V", name: "Report Voltage of Clamp 3.", value: 262144, def:null],
+	//[key: "clamp1A", name: "Report Current (Amperes) of Clamp 1.", value: 524288, def:null],
+	//[key: "clamp2A", name: "Report Current (Amperes) of Clamp 2.", value: 1048576, def:null],
+	//[key: "clamp3A", name: "Report Current (Amperes) of Clamp 3.", value: 2097152, def:null],
 	//[key: "clamp1KVarh", name: "Report KVarh of Clamp 1.", value: 16777216, def:null], //Doesn't work
 	//[key: "clamp2KVarh", name: "Report KVarh of Clamp 2.", value: 33554432, def:null], //Doesn't work
 	//[key: "clamp3KVarh", name: "Report KVarh of Clamp 3.", value: 67108864, def:null], //Doesn't work
